@@ -18,7 +18,7 @@
 
     <div class="game-container daily-mode-container" id="game-container">
         <div class="game-header">
-            <div class="round">Round: <span id="current-round">1</span>/5
+            <div class="round">Round: <b id="current-round">1</b>/5
                 <div class="progress-dots" id="progress-dots">
                     <div class="dot" id="dot-1"></div>
                     <div class="dot" id="dot-2"></div>
@@ -39,18 +39,31 @@
             <h3>You've already completed today's challenge!</h3>
             <p>Come back tomorrow for a new set of songs.</p>
             <p>Your score today: <span id="previous-score">0</span></p>
+            <div class="copy-container">
+                <button id="copy-completed-results-btn" class="copy-btn">Copy Results</button>
+                <span id="copy-completed-success" class="copy-success">Copied!</span>
+            </div>
             <div class="home-links">
+                <button id="view-results-btn" class="home-btn">View Results</button>
                 <a href="/" class="home-btn">Back to Home</a>
                 <a href="/free_options" class="home-btn">Try Free Play</a>
             </div>
         </div>
 
         <div id="game-content">
-            <!-- New song info bar that shows above the player (MOVED HERE) -->
             <div class="song-info-bar" id="song-info-bar">
-                <div class="song-info-item title"><span id="title-display" class="unknown">Unknown song</span></div>
-                <div class="song-info-item artist"><span id="artist-display" class="unknown">Unknown artist</span></div>
-                <div class="song-info-item year"><span id="year-display" class="unknown">Unknown year</span></div>
+                <div class="song-info-item title">
+                    <div class="item-label">Title</div>
+                    <span id="title-display" class="unknown">Unknown song</span>
+                </div>
+                <div class="song-info-item artist">
+                    <div class="item-label">Artist</div>
+                    <span id="artist-display" class="unknown">Unknown artist</span>
+                </div>
+                <div class="song-info-item year">
+                    <div class="item-label">Year</div>
+                    <span id="year-display" class="unknown">Unknown year</span>
+                </div>
             </div>
 
             <!-- Player container now appears below song info -->
@@ -66,9 +79,10 @@
         <!-- Game Over Modal -->
         <div class="game-over-overlay" id="game-over-overlay">
             <div class="game-over" id="game-over">
+                <button id="close-results-btn" class="close-results-btn">&times;</button>
                 <h3>Challenge Complete!</h3>
 
-                <p id="game-over-message"></p>
+                <p id="game-over-message" style="display:none"></p>
 
                 <div class="results-grid" id="results-grid">
                     <!-- Results grid will be generated here -->
@@ -94,610 +108,121 @@
     <script src="/static/common.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inject the navbar
-            injectNavbar();
+            console.log("Daily Challenge page loaded");
 
-            // Replace the footer with the common footer
-            document.body.insertAdjacentHTML('beforeend', footerHTML);
+            // DOM elements for the game
+            const elements = {
+                // Game information elements
+                currentRoundSpan: document.getElementById('current-round'),
+                scoreSpan: document.getElementById('score'),
+                scoreContainer: document.getElementById('score-container'),
 
-            // DOM elements for static elements
-            const currentRoundSpan = document.getElementById('current-round');
-            const scoreSpan = document.getElementById('score');
-            const playerContainer = document.getElementById('player');
-            const songInfoBar = document.getElementById('song-info-bar');
-            const titleDisplay = document.getElementById('title-display');
-            const artistDisplay = document.getElementById('artist-display');
-            const yearDisplay = document.getElementById('year-display');
-            const guessFeedback = document.getElementById('guess-feedback');
-            const nextBtn = document.getElementById('next-btn');
-            const gameOverDiv = document.getElementById('game-over');
-            const gameOverOverlay = document.getElementById('game-over-overlay');
-            const gameOverMessage = document.getElementById('game-over-message');
-            const copyResultsBtn = document.getElementById('copy-results-btn');
-            const copySuccess = document.getElementById('copy-success');
-            const resultsGrid = document.getElementById('results-grid');
-            const dailyCompletedDiv = document.getElementById('daily-completed');
-            const previousScoreSpan = document.getElementById('previous-score');
-            const gameContent = document.getElementById('game-content');
+                // Song information elements
+                playerContainer: document.getElementById('player'),
+                songInfoBar: document.getElementById('song-info-bar'),
+                titleDisplay: document.getElementById('title-display'),
+                artistDisplay: document.getElementById('artist-display'),
+                yearDisplay: document.getElementById('year-display'),
+                guessFeedback: document.getElementById('guess-feedback'),
 
-            // Initialize the score circle
-            initScoreCircle('score-container', 'score');
+                // UI controls
+                nextBtn: document.getElementById('next-btn'),
 
-            // FIXED: Make sure next button is explicitly hidden on load
-            nextBtn.style.display = 'none';
-            nextBtn.classList.remove('visible');
+                // Daily specific elements
+                progressDots: document.getElementById('progress-dots'),
+                dailyCompletedDiv: document.getElementById('daily-completed'),
+                previousScoreSpan: document.getElementById('previous-score'),
+                gameContent: document.getElementById('game-content'),
 
-            // Session data - keeps track of game state
-            let session = { currentRound: 0 };
+                // Game over elements
+                gameOverOverlay: document.getElementById('game-over-overlay'),
+                gameOver: document.getElementById('game-over'),
+                gameOverMessage: document.getElementById('game-over-message'),
+                resultsGrid: document.getElementById('results-grid'),
+                copyResultsBtn: document.getElementById('copy-results-btn'),
+                copySuccess: document.getElementById('copy-success'),
 
-            // Track song results for the copy feature and results grid
-            let songResults = [];
-            let currentDate = new Date().toISOString().split('T')[0];
+                // New elements
+                copyCompletedResultsBtn: document.getElementById('copy-completed-results-btn'),
+                copyCompletedSuccess: document.getElementById('copy-completed-success'),
+                viewResultsBtn: document.getElementById('view-results-btn'),
+                closeResultsBtn: document.getElementById('close-results-btn'),
 
-            // Check if user already completed today's challenge
-            const isCompleted = checkDailyCompletion();
+                finalRoundsSpan: null,
+                finalScoreSpan: null
+            };
 
-            // Hide elements initially
-            guessFeedback.style.display = 'none';
-            gameOverOverlay.style.display = 'none';
-            copySuccess.style.display = 'none';
+            // Create a new game instance
+            const game = new YearwormGame({
+                mode: 'daily',
+                hintsEnabled: false,
+                unlimitedGuesses: false,
+                unlimitedMode: false
+            });
 
-            // Check for in-progress session
-            const hasProgress = checkDailyProgress();
+            // Initialize the game
+            game.initialize(elements);
 
-            // Load the first song if not already completed
-            if (!isCompleted) {
-                if (!hasProgress) {
-                    // Brand new game
-                    loadNewSong();
+            // Fix: Make sure the gameOverOverlay is hidden by default
+            if (elements.gameOverOverlay) {
+                elements.gameOverOverlay.style.display = 'none';
+            }
+
+            // Fix: Add extra check for localStorage compatibility
+            function storageAvailable() {
+                try {
+                    const storage = localStorage;
+                    const x = '__storage_test__';
+                    storage.setItem(x, x);
+                    storage.removeItem(x);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            // Only run daily completion check if localStorage is available
+            if (storageAvailable()) {
+                // Check if user already completed today's challenge
+                const isCompleted = game.checkDailyCompletion();
+
+                // If not completed, check for in-progress session
+                if (!isCompleted) {
+                    const hasProgress = game.checkDailyProgress();
+                    // Only load a new song once, after all initialization is complete
+                    game.loadNewSong();
                 } else {
-                    // Resume from progress
-                    loadNewSong();
+                    console.log("User already completed today's challenge");
+                    // Important: Don't load a new song here since it's already completed
                 }
             } else {
-                // NEW: Update the progress dots and round counter when showing completed state
-                currentRoundSpan.textContent = "5";
-                updateProgressDots(5);
+                // If localStorage is not available, just start a new game
+                console.log("localStorage not available, starting fresh game");
+                game.loadNewSong();
+            }
 
-                // NEW: Retrieve and display the saved score
-                try {
-                    const dailyRecord = JSON.parse(localStorage.getItem('dailyChallenge'));
-                    if (dailyRecord && dailyRecord.date === currentDate) {
-                        scoreSpan.textContent = dailyRecord.score;
+            // Event listener for copy results button in the game over modal
+            if (elements.copyResultsBtn) {
+                elements.copyResultsBtn.addEventListener('click', () => game.copyResults());
+            }
+
+            // Event listener for copy results button in the daily completed section
+            if (elements.copyCompletedResultsBtn) {
+                elements.copyCompletedResultsBtn.addEventListener('click', () => game.copyResults());
+            }
+
+            // Event listener for view results button in the daily completed section
+            if (elements.viewResultsBtn) {
+                elements.viewResultsBtn.addEventListener('click', () => game.showCompletedResults());
+            }
+
+            // Event listener for close button on results modal
+            if (elements.closeResultsBtn) {
+                elements.closeResultsBtn.addEventListener('click', () => {
+                    if (elements.gameOverOverlay) {
+                        elements.gameOverOverlay.style.display = 'none';
                     }
-                } catch (e) {
-                    console.error('Error retrieving daily record:', e);
-                }
-            }
-
-            // Event listener for next button
-            nextBtn.addEventListener('click', loadNewSong);
-
-            // Event listener for copy results button
-            copyResultsBtn.addEventListener('click', copyResults);
-
-            // Function to check for and load progress
-            function checkDailyProgress() {
-                try {
-                    const dailyProgress = localStorage.getItem('dailyProgress');
-                    if (dailyProgress) {
-                        const progress = JSON.parse(dailyProgress);
-
-                        // Check if the progress is for today
-                        if (progress.date === currentDate) {
-                            console.log("Found in-progress daily challenge");
-
-                            // If user has completed some rounds but not all
-                            if (progress.currentRound > 0 && progress.currentRound < 5) {
-                                // Update the round counter
-                                session.currentRound = progress.currentRound;
-
-                                // Update the score - IMPORTANT: Use updateScoreWithAnimation for visual update
-                                if (progress.score !== undefined) {
-                                    console.log("Restoring score to:", progress.score);
-                                    scoreSpan.textContent = progress.score;
-                                    // Properly update the score circle appearance
-                                    updateScoreCircleClass('score', progress.score);
-                                }
-
-                                // Update the song results array
-                                if (progress.results && Array.isArray(progress.results)) {
-                                    songResults = progress.results;
-                                }
-
-                                // Update progress dots
-                                currentRoundSpan.textContent = progress.currentRound;
-                                updateProgressDots(progress.currentRound);
-
-                                // Log the restored state
-                                console.log("Restored game state - Round:", progress.currentRound, "Score:", progress.score);
-
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                } catch (e) {
-                    console.error('Error checking daily progress:', e);
-                    return false;
-                }
-            }
-
-            // Save progress after each round
-            function saveDailyProgress() {
-                try {
-                    const progress = {
-                        date: currentDate,
-                        currentRound: session.currentRound || parseInt(currentRoundSpan.textContent),
-                        score: parseInt(scoreSpan.textContent),
-                        results: songResults
-                    };
-                    localStorage.setItem('dailyProgress', JSON.stringify(progress));
-                    console.log("Progress saved:", progress);
-                } catch (e) {
-                    console.error('Error saving daily progress:', e);
-                }
-            }
-
-            // Update progress dots
-            function updateProgressDots(currentRound) {
-                // Get all dots
-                const dots = document.querySelectorAll('.dot');
-
-                // Reset all dots
-                dots.forEach(dot => {
-                    dot.classList.remove('active');
                 });
-
-                // Activate dots up to current round
-                for (let i = 0; i < currentRound; i++) {
-                    if (dots[i]) {
-                        dots[i].classList.add('active');
-                    }
-                }
-            }
-
-            // Check if user already completed today's challenge
-            function checkDailyCompletion() {
-                try {
-                    const dailyRecord = localStorage.getItem('dailyChallenge');
-                    if (dailyRecord) {
-                        const record = JSON.parse(dailyRecord);
-
-                        // Check if the record is for today
-                        if (record.date === currentDate) {
-                            // User already completed today's challenge
-                            dailyCompletedDiv.style.display = 'block';
-                            gameContent.style.display = 'none';
-
-                            // Update score display with the final score
-                            const finalScore = record.score;
-                            console.log("Showing completed daily with score:", finalScore);
-
-                            // First update the text content
-                            previousScoreSpan.textContent = finalScore;
-                            scoreSpan.textContent = finalScore;
-
-                            // Then update the score circle appearance
-                            updateScoreCircleClass('score', finalScore);
-
-                            // Make sure progress dots show 5/5 completed
-                            currentRoundSpan.textContent = "5";
-                            updateProgressDots(5);
-
-                            return true;
-                        }
-                    }
-                    return false;
-                } catch (e) {
-                    console.error('Error checking daily completion:', e);
-                    return false;
-                }
-            }
-
-            // Save daily completion record
-            function saveDailyCompletion(finalScore) {
-                try {
-                    // Ensure we're using the numeric value of the score
-                    const scoreValue = parseInt(finalScore);
-
-                    console.log("Saving daily completion with score:", scoreValue);
-
-                    // Create a comprehensive record with all game data
-                    const record = {
-                        date: currentDate,
-                        score: scoreValue,
-                        results: songResults,
-                        completedAt: new Date().toISOString()
-                    };
-
-                    // Save to localStorage
-                    localStorage.setItem('dailyChallenge', JSON.stringify(record));
-
-                    // Clear the in-progress data when fully completed
-                    localStorage.removeItem('dailyProgress');
-
-                    console.log("Daily challenge saved and progress cleared");
-                } catch (e) {
-                    console.error('Error saving daily completion:', e);
-                }
-            }
-
-            // Load a new song
-            function loadNewSong() {
-                // Reset the game state for this round
-                guessFeedback.style.display = 'none';
-
-                // FIXED: Make sure next button is explicitly hidden
-                nextBtn.style.display = 'none';
-                nextBtn.classList.remove('visible');
-
-                // Reset song info
-                titleDisplay.textContent = 'Unknown song';
-                titleDisplay.className = 'unknown';
-                artistDisplay.textContent = 'Unknown artist';
-                artistDisplay.className = 'unknown';
-                yearDisplay.textContent = 'Unknown year';
-                yearDisplay.className = 'unknown';
-
-                // Fetch a new song
-                fetch('/get-song')
-                    .then(response => response.json())
-                    .then(song => {
-                        // Check if the game is over
-                        if (song.gameOver) {
-                            showGameOver(song.finalScore);
-                            return;
-                        }
-
-                        // Update session data
-                        session.currentRound = song.round;
-
-                        // Update UI
-                        currentRoundSpan.textContent = song.round;
-                        scoreSpan.textContent = song.score;
-
-                        updateProgressDots(song.round);
-
-                        // Setup the audio player with form controls
-                        setupAudioPlayerNew(playerContainer, song.previewUrl);
-
-                        // Add event listeners to the new buttons and input
-                        const yearGuessInput = document.getElementById('year-guess');
-                        const guessBtn = document.getElementById('guess-btn');
-                        const skipBtn = document.getElementById('skip-btn');
-
-                        if (!yearGuessInput || !guessBtn || !skipBtn) {
-                            console.error('Required form elements not found');
-                            return;
-                        }
-
-                        // Clear the input value (it might be preserved from previous round)
-                        yearGuessInput.value = '';
-
-                        // Set up event listeners
-                        guessBtn.addEventListener('click', checkGuess);
-                        skipBtn.addEventListener('click', skipSong);
-
-                        // Set up enter key handler
-                        setupEnterKeyForGuess(yearGuessInput, guessBtn);
-                    })
-                    .catch(error => {
-                        console.error('Error loading song:', error);
-                        playerContainer.innerHTML = '<p>Error loading song. Please try again.</p>';
-                    });
-            }
-
-            // Check guess
-            function checkGuess() {
-                const yearGuessInput = document.getElementById('year-guess');
-                const guessBtn = document.getElementById('guess-btn');
-                const skipBtn = document.getElementById('skip-btn');
-
-                if (!yearGuessInput) {
-                    console.error('Year input not found');
-                    return;
-                }
-
-                const guess = parseInt(yearGuessInput.value);
-
-                // Validate the input
-                const validation = validateYearInput(guess);
-                if (!validation.valid) {
-                    alert(validation.message);
-                    return;
-                }
-
-                fetch('/check-guess', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ guess: guess })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Store result for this song
-                    songResults.push({
-                        title: data.title,
-                        artist: data.artist,
-                        actualYear: data.actual_year,
-                        guessedYear: guess,
-                        yearDifference: data.year_difference
-                    });
-
-                    // Update round
-                    if (data.round) {
-                        session.currentRound = data.round;
-                        updateProgressDots(data.round);
-                    } else if (data.game_over) {
-                        updateProgressDots(5); // All dots filled at game over
-                    }
-
-                    // Update score
-                    if (data.new_score !== undefined) {
-                        updateScoreWithAnimation('score', data.new_score);
-                    }
-
-                    // Display feedback
-                    guessFeedback.style.display = 'block';
-                    guessFeedback.className = 'guess-feedback';
-
-                    if (data.result === 'correct') {
-                        guessFeedback.classList.add('correct');
-                        guessFeedback.textContent = formatYearDifferenceFeedback(0, data.actual_year, true);
-                    } else {
-                        guessFeedback.classList.add('incorrect');
-                        guessFeedback.textContent = formatYearDifferenceFeedback(data.year_difference, data.actual_year, false);
-                    }
-
-                    // Update song info bar
-                    if (data.artist) {
-                        artistDisplay.textContent = data.artist;
-                        artistDisplay.className = 'revealed';
-                    }
-                    if (data.title) {
-                        titleDisplay.textContent = data.title;
-                        titleDisplay.className = 'revealed';
-                    }
-
-                    // Update year display
-                    yearDisplay.textContent = data.actual_year;
-                    yearDisplay.className = 'revealed';
-
-                    // Add animation class
-                    yearDisplay.classList.add('year-reveal-animation');
-
-                    // Remove animation class after it completes
-                    setTimeout(() => {
-                        yearDisplay.classList.remove('year-reveal-animation');
-                    }, 800);
-
-                    if (data.year_difference === 0) {
-                        yearDisplay.classList.add('correct-year');
-                    } else {
-                        yearDisplay.classList.add('incorrect-year');
-                    }
-
-                    // Disable buttons
-                    if (guessBtn) guessBtn.disabled = true;
-                    if (skipBtn) skipBtn.disabled = true;
-
-                    // Save progress after the guess
-                    saveDailyProgress();
-
-                    // If not game over, show next button
-                    if (data.game_over) {
-                        showGameOver(data.new_score);
-                    } else {
-                        // FIXED: Show next button correctly
-                        nextBtn.style.display = 'flex';
-                        nextBtn.classList.add('visible');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error checking guess:', error);
-                    alert('Something went wrong. Please try again.');
-                });
-            }
-
-            // Skip song
-            function skipSong() {
-                const guessBtn = document.getElementById('guess-btn');
-                const skipBtn = document.getElementById('skip-btn');
-                const currentScore = parseInt(scoreSpan.textContent);
-
-                // Show warning if score is above 0 (they haven't skipped yet)
-                if (currentScore > 0) {
-                    const confirmSkip = confirm("Skipping will deduct 100 points from your score! Are you sure you want to skip? You might want to make a guess instead.");
-                    if (!confirmSkip) {
-                        return; // User canceled the skip
-                    }
-                }
-
-                fetch('/check-guess', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        guess: 0,  // Dummy value
-                        is_skip: true
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    // Store result for this song (skipped)
-                    songResults.push({
-                        title: data.title,
-                        artist: data.artist,
-                        actualYear: data.actual_year,
-                        guessedYear: 0, // 0 indicates skipped
-                        yearDifference: data.actual_year, // Maximum difference
-                        isSkip: true
-                    });
-
-                    // Display feedback
-                    guessFeedback.style.display = 'block';
-                    guessFeedback.className = 'guess-feedback incorrect';
-                    guessFeedback.textContent = `Skipped. This song was released in ${data.actual_year}. You lost 100 points!`;
-
-                    // Update round
-                    if (data.round) {
-                        session.currentRound = data.round;
-                        updateProgressDots(data.round);
-                    } else if (data.game_over) {
-                        updateProgressDots(5); // All dots filled at game over
-                    }
-
-                    // Update score
-                    if (data.new_score !== undefined) {
-                        updateScoreWithAnimation('score', data.new_score);
-                    }
-
-                    // Update song info bar
-                    if (data.artist) {
-                        artistDisplay.textContent = data.artist;
-                        artistDisplay.className = 'revealed';
-                    }
-                    if (data.title) {
-                        titleDisplay.textContent = data.title;
-                        titleDisplay.className = 'revealed';
-                    }
-
-                    yearDisplay.textContent = data.actual_year;
-                    yearDisplay.className = 'revealed skipped-year';
-
-                    // Add animation class
-                    yearDisplay.classList.add('year-reveal-animation');
-
-                    // Remove animation class after it completes
-                    setTimeout(() => {
-                        yearDisplay.classList.remove('year-reveal-animation');
-                    }, 800);
-
-                    // Disable buttons
-                    if (guessBtn) guessBtn.disabled = true;
-                    if (skipBtn) skipBtn.disabled = true;
-
-                    // Save progress after the skip
-                    saveDailyProgress();
-
-                    // If not game over, show next button
-                    if (data.game_over) {
-                        showGameOver(data.new_score);
-                    } else {
-                        // FIXED: Show next button correctly
-                        nextBtn.style.display = 'flex';
-                        nextBtn.classList.add('visible');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error skipping song:', error);
-                    alert('Something went wrong. Please try again.');
-                });
-            }
-
-            // Generate results grid HTML with final score in first cell
-            function generateResultsGrid() {
-                let gridHTML = '<div class="results-grid-container">';
-
-                // Add final score as the first cell
-                const finalScore = scoreSpan.textContent;
-                gridHTML += `
-                    <div class="result-item score-cell">
-                        <div class="result-label">Final Score</div>
-                        <div class="final-score-value">${finalScore}</div>
-                    </div>
-                `;
-
-                // Add song results
-                songResults.forEach((result, index) => {
-                    const isCorrect = result.yearDifference === 0;
-                    const isSkipped = result.guessedYear === 0 || result.isSkip;
-
-                    let yearDiffClass = 'year-correct';
-                    if (isSkipped) {
-                        yearDiffClass = 'year-skipped';
-                    } else if (!isCorrect) {
-                        yearDiffClass = result.guessedYear > result.actualYear ? 'year-high' : 'year-low';
-                    }
-
-                    let yearDiffText = isSkipped ? 'SKIP' : (result.yearDifference === 0 ? 'EXACT!' :
-                        (result.guessedYear > result.actualYear ? '+' : '') + (-1 * result.yearDifference));
-
-                    // Calculate color intensity based on difference (max intensity at 30+ years)
-                    const colorIntensity = Math.min(Math.abs(result.yearDifference) / 30, 1);
-
-                    gridHTML += `
-                        <div class="result-item">
-                            <div class="result-artist">${result.artist}</div>
-                            <div class="result-title">${result.title}</div>
-                            <div class="result-year-diff ${yearDiffClass}"
-                                 style="${!isCorrect && !isSkipped ? `--intensity: ${colorIntensity};` : ''}">
-                                ${yearDiffText}
-                            </div>
-                            <div class="result-years">${isSkipped ? '—' : result.guessedYear} → ${result.actualYear}</div>
-                        </div>
-                    `;
-                });
-
-                gridHTML += '</div>';
-                return gridHTML;
-            }
-
-            // Copy results to clipboard
-            function copyResults() {
-                const today = new Date().toISOString().split('T')[0];
-                const formattedDate = today.replace(/-/g, '/');
-
-                // Format year differences
-                const yearDiffs = songResults.map(result => {
-                    if (result.guessedYear === 0 || result.isSkip) return "SKIP";
-                    return result.yearDifference === 0 ? "✓" :
-                        (result.guessedYear > result.actualYear ? "+" : "") + (-1 * result.yearDifference);
-                }).join("/");
-
-                const scoreText = scoreSpan.textContent;
-
-                // Build the full text
-                const copyText = `Yearworm ${formattedDate}\n${yearDiffs}\nFinal Score: ${scoreText}`;
-
-                // Copy to clipboard
-                navigator.clipboard.writeText(copyText).then(() => {
-                    copySuccess.style.display = 'inline';
-                    setTimeout(() => {
-                        copySuccess.style.display = 'none';
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Could not copy text: ', err);
-                    alert('Failed to copy results');
-                });
-            }
-
-            // Show game over screen
-            function showGameOver(finalScore) {
-                // Generate the results grid
-                resultsGrid.innerHTML = generateResultsGrid();
-
-                // Set game over message
-                gameOverMessage.textContent = generateGameOverMessage(finalScore);
-
-                // Update score display with the final score
-                scoreSpan.textContent = finalScore;
-                updateScoreCircleClass('score', finalScore);
-
-                // Make sure progress dots show 5/5 completed
-                currentRoundSpan.textContent = "5";
-                updateProgressDots(5);
-
-                // Show the modal
-                gameOverOverlay.style.display = 'flex';
-
-                // Save to localStorage to prevent replay
-                saveDailyCompletion(finalScore);
-
-                console.log("Game over shown with final score:", finalScore);
             }
         });
     </script>

@@ -57,26 +57,32 @@
     <script src="/static/common.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("Free Play Options page loaded");
+
             // Inject the navbar
             injectNavbar();
 
             // Replace the footer with the common footer
             document.body.insertAdjacentHTML('beforeend', footerHTML);
 
+            // DOM Elements
             const startBtn = document.getElementById('start-btn');
             const enableHints = document.getElementById('enable-hints');
             const unlimitedGuessesOption = document.getElementById('unlimited-guesses');
             const normalModeOption = document.getElementById('normal-mode');
             const unlimitedModeOption = document.getElementById('unlimited-mode');
 
-            startBtn.addEventListener('click', function() {
-                const hintsEnabled = enableHints.checked;
-                const unlimitedGuesses = unlimitedGuessesOption.checked;
-                const unlimitedMode = unlimitedModeOption.checked;
+            // Event listener for start button
+            if (startBtn) {
+                startBtn.addEventListener('click', function() {
+                    const hintsEnabled = enableHints.checked;
+                    const unlimitedGuesses = unlimitedGuessesOption.checked;
+                    const unlimitedMode = unlimitedModeOption.checked;
 
-                // Redirect to free play page with options as query parameters
-                window.location.href = `/free?hints=${hintsEnabled}&unlimited=${unlimitedGuesses}&unlimited_mode=${unlimitedMode}`;
-            });
+                    // Redirect to free play page with options as query parameters
+                    window.location.href = `/free?hints=${hintsEnabled}&unlimited=${unlimitedGuesses}&unlimited_mode=${unlimitedMode}`;
+                });
+            }
         });
     </script>
 </body>

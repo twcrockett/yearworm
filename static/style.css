@@ -26,12 +26,15 @@
     --correct: #28a745;            /* Green for correct answers */
     --correct-bg: #d4edda;         /* Light green background */
 
-    /* Spectrum colors for year differences */
-    --slightly-high: #6c8ebf;      /* Desaturated blue */
-    --too-high: #6610f2;           /* Purple */
-    --slightly-low: #ffc107;       /* Yellow */
-    --too-low: #fd7e14;            /* Orange */
-    --very-off: #dc3545;           /* Red */
+    /* Cold/Blue spectrum (for high guesses) */
+    --slightly-high: #8bb9e0;      /* Light blue - slightly too high */
+    --too-high: #4575b4;           /* Medium blue - too high */
+    --very-high: #313695;          /* Dark blue - very high */
+
+    /* Warm/Red spectrum (for low guesses) */
+    --slightly-low: #fee090;       /* Light gold - slightly too low */
+    --too-low: #fc8d59;            /* Orange - too low */
+    --very-low: #d73027;           /* Red - very low */
 
     /* Neutral colors */
     --neutral-bg: #f7f9fc;         /* Page background */
@@ -234,26 +237,53 @@ button:disabled {
 
 /* Responsive adjustments */
 @media (max-width: 680px) {
+    /* Make the header layout horizontal even on mobile */
     .page-header {
-        flex-direction: column;
-        gap: 5px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding: 0 5px;
     }
 
-    .page-header h1:after {
-        display: none;
+    /* Fix icon size and positioning */
+    .font-icon {
+        font-size: 1.8rem;
+        margin: 0;
+        align-self: center;
     }
 
+    /* Adjust h1 for single line layout */
     .page-header h1 {
-        margin-bottom: 5px;
+        font-size: 1.8rem;
+        margin: 0;
+        line-height: 1;
     }
 
+    /* Reduce space for subtitle and make it full width on new line */
     .page-header h2 {
-        padding-top: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 0.9rem;
+        margin: 5px 0 0 0;
+        padding: 0;
+        order: 3; /* Force subtitle to appear below title row */
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 1.6rem;
     }
 
     .font-icon {
-        margin-right: 0;
-        margin-bottom: 5px;
+        font-size: 1.6rem;
+    }
+
+    .page-header h2 {
+        font-size: 0.85rem;
     }
 }
 
@@ -606,7 +636,7 @@ input[type="number"]:focus {
 }
 
 /* ==========================================================================
-   Song Info Bar Styles
+   Song Info Bar Styles - Combined Version
    ========================================================================== */
 .song-info-bar {
     display: grid;
@@ -622,7 +652,7 @@ input[type="number"]:focus {
 
 .song-info-item {
     position: relative;
-    padding: 10px;
+    padding: 15px;
     border-radius: 8px;
     background: #fff;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -632,22 +662,37 @@ input[type="number"]:focus {
     min-height: 45px;
 }
 
+/* Item label style */
+.item-label {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-size: 0.7em;
+    color: #adb5bd;
+    font-weight: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Base text style */
 .song-info-item span {
     font-size: 0.95em;
     font-weight: 500;
     word-break: break-word;
 }
 
+/* 'Unknown' style */
 .song-info-item span.unknown {
     color: #adb5bd;
-    font-style: italic;
 }
 
+/* Revealed text style */
 .song-info-item span.revealed {
     color: #343a40;
     font-weight: 600;
 }
 
+/* Year coloring */
 .song-info-item span.correct-year {
     color: var(--correct);
     font-weight: 700;
@@ -673,37 +718,54 @@ input[type="number"]:focus {
     font-weight: 600;
 }
 
-/* Hint button styling */
-.hint-icon {
+/* Hint button centered by default (for unknown state) */
+.song-info-item .hint-icon {
     position: absolute;
-    right: 5px;
+    left: 50%;
     top: 50%;
-    transform: translateY(-50%);
-    width: 24px;
-    height: 24px;
+    transform: translate(-50%, -50%);
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background-color: var(--primary-color);
     color: white;
     border: none;
     cursor: pointer;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
 }
 
-.hint-icon:hover {
+/* Hint button moves to the right when text is revealed */
+.song-info-item span.revealed + .hint-icon {
+    left: auto;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Hover state for centered hint button */
+.song-info-item .hint-icon:hover {
+    background-color: var(--primary-dark);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Hover state for right-aligned hint button */
+.song-info-item span.revealed + .hint-icon:hover {
     background-color: var(--primary-dark);
     transform: translateY(-50%) scale(1.1);
 }
 
+/* Disabled state */
 .hint-icon:disabled {
     background-color: #bdc3c7;
     cursor: not-allowed;
 }
 
+/* Animation keyframes */
 @keyframes inflateWiggle {
   0% {
     transform: scale(1);
@@ -835,14 +897,12 @@ input[type="number"]:focus {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #fff; /* Brighter color for better visibility */
-    background-color: var(--primary-color); /* Add a background for visibility */
+    color: var(--neutral-dark);
     padding: 15px;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 1000; /* Increase z-index to ensure visibility */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     width: 50px;
     height: 50px;
 }
@@ -852,8 +912,10 @@ input[type="number"]:focus {
 }
 
 .next-song-arrow:hover {
+    color: #fff; /* Brighter color for better visibility */
     transform: translateY(-50%) scale(1.1);
     background-color: var(--primary-dark);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .next-song-arrow .arrow {
@@ -864,7 +926,6 @@ input[type="number"]:focus {
 .next-song-arrow .text {
     font-size: 12px;
     font-weight: 500;
-    display: none; /* Hide text to simplify */
 }
 
 /* Media queries for responsive design */
@@ -874,43 +935,60 @@ input[type="number"]:focus {
     }
 }
 
-/* For mobile devices, position at bottom center of the viewport */
 @media (max-width: 768px) {
     .next-song-arrow {
-        position: fixed; /* Switch back to fixed for mobile */
+        /* Position it higher above the navigation links */
+        position: fixed;
+        bottom: 70px; /* Higher position to avoid overlapping with nav links */
         right: 20px;
-        bottom: 20px;
         top: auto;
         left: auto;
         transform: none;
+        z-index: 9999 !important; /* Use a very high z-index to ensure it's above everything */
+
+        /* Make it more eye-catching */
+        background-color: var(--primary-color);
+        color: white;
+        padding: 15px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
     .next-song-arrow:hover {
+        background-color: var(--primary-dark);
         transform: scale(1.1);
+    }
+
+    /* Larger, clearer icon */
+    .next-song-arrow .arrow {
+        font-size: 28px;
+    }
+
+    /* Hide the text and just use the arrow for cleaner design */
+    .next-song-arrow .text {
+        display: none;
+    }
+
+    /* Add some spacing after the game container to ensure enough room */
+    .game-container {
+        margin-bottom: 60px;
+    }
+
+    /* Ensure navigation links stay at the bottom */
+    .navigation-links {
+        margin-top: 30px;
+        position: relative;
+        z-index: 1000;
     }
 }
 
-/* For mobile devices, reposition at bottom of game container */
-@media (max-width: 768px) {
+/* For very small screens, make further adjustments */
+@media (max-width: 480px) {
     .next-song-arrow {
-        position: absolute;
-        right: auto;
-        bottom: -60px;
-        top: auto;
-        left: 50%;
-        transform: translateX(-50%);
-        flex-direction: row;
-        gap: 10px;
-        padding: 12px 20px;
-        border-radius: 30px;
-    }
-
-    .next-song-arrow:hover {
-        transform: translateX(-50%) scale(1.05);
-    }
-
-    .next-song-arrow .text {
-        display: inline;
+        right: 15px;
+        bottom: 80px;
     }
 }
 
@@ -1227,6 +1305,24 @@ input[type="number"]:focus {
     box-shadow: 0 4px 8px rgba(44, 62, 80, 0.3);
 }
 
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .home-links {
+    flex-direction: column; /* Stack buttons vertically on small screens */
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .home-links .home-btn {
+    width: 100%; /* Make buttons full width on mobile */
+    max-width: 200px; /* Limit maximum width */
+    font-size: 0.9em; /* Further reduce font size */
+    height: 36px; /* Even smaller height for mobile */
+  }
+}
+
 /* ==========================================================================
    Daily Completed Message
    ========================================================================== */
@@ -1519,6 +1615,58 @@ footer a:hover {
 }
 
 /* ==========================================================================
+   Close Button for Results Modal
+   ========================================================================== */
+.close-results-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--neutral-dark);
+    color: white;
+    font-size: 20px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    padding: 0;
+}
+
+.close-results-btn:hover {
+    background-color: var(--text-dark);
+    transform: scale(1.1);
+}
+
+/* Update to daily completed section to include copy button */
+#daily-completed .copy-container {
+    margin: 20px auto;
+    position: relative;
+    display: inline-block;
+}
+
+#daily-completed .copy-btn {
+    background-color: var(--neutral-dark);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+#daily-completed .copy-btn:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+
+/* ==========================================================================
    Animation Effects
    ========================================================================== */
 @keyframes pulse {
@@ -1612,5 +1760,349 @@ footer a:hover {
 
     .song-info-item {
         padding: 8px;
+    }
+}
+
+/* ==========================================================================
+   Mobile Fixes for Game Container and Guess Bar
+   ========================================================================== */
+@media (max-width: 480px) {
+    /* Fix for guess form elements */
+    .guess-form {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    /* Make input fill the container width */
+    .guess-form input[type="number"] {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+
+    /* Make button group take full width */
+    .button-group {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Make buttons flexible */
+    .guess-form button {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 10px;
+        margin: 0 5px;
+    }
+
+    /* First button in group has no left margin */
+    .button-group button:first-child {
+        margin-left: 0;
+    }
+
+    /* Last button in group has no right margin */
+    .button-group button:last-child {
+        margin-right: 0;
+    }
+
+    /* Game container padding adjustment */
+    .game-container {
+        padding: 15px;
+    }
+
+    /* Audio player adjustments */
+    .audio-player {
+        padding: 15px 10px;
+    }
+
+    /* Ensure the audio element doesn't overflow */
+    audio {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* Additional fixes for very small screens */
+@media (max-width: 360px) {
+    .button-group button {
+        padding: 10px 5px;
+        font-size: 14px;
+    }
+
+    .game-header {
+        padding: 10px;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .game-header .round,
+    .game-header .score {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* Static guess display after submitting */
+.static-guess {
+    padding: 12px 18px;
+    border: 1px solid var(--neutral-medium);
+    border-radius: 8px;
+    width: 180px;
+    font-size: 16px;
+    font-family: 'Familjen Grotesk', sans-serif;
+    background-color: var(--neutral-light);
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.static-guess.skipped {
+    font-style: italic;
+    color: var(--skip-color);
+}
+
+.button-group button.disabled {
+    opacity: 0.6;
+    background-color: var(--neutral-dark);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Ensure proper spacing in audio player with static text */
+.audio-player .guess-form {
+    margin: 20px 0 5px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+/* Navigation Links - Moved outside of game container */
+.navigation-links {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0 40px;
+}
+
+.nav-btn {
+    padding: 10px 20px;
+    background-color: var(--text-medium);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 0.95em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: auto; /* Remove fixed width */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-btn:hover {
+    background-color: var(--text-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Media query for navigation links on mobile */
+@media (max-width: 480px) {
+    .navigation-links {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .nav-btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+}
+
+/* Make sure the next button is positioned correctly */
+.next-song-arrow.visible {
+    display: flex !important;
+    z-index: 100;
+}
+
+
+/* Spectrum classes for year differences */
+.slightly-high {
+    background-color: var(--slightly-high);
+    color: white;
+}
+
+.too-high {
+    background-color: var(--too-high);
+    color: white;
+}
+
+.very-high {
+    background-color: var(--very-high);
+    color: white;
+}
+
+.slightly-low {
+    background-color: var(--slightly-low);
+    color: black; /* Better contrast on yellow */
+}
+
+.too-low {
+    background-color: var(--too-low);
+    color: white;
+}
+
+.very-low {
+    background-color: var(--very-low);
+    color: white;
+}
+
+/* ==========================================================================
+   Free Mode Game Over Song History
+   ========================================================================== */
+.song-history-container {
+    margin: 25px 0;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.song-history-container h4 {
+    font-family: 'Familjen Grotesk', sans-serif;
+    margin-bottom: 15px;
+    color: var(--text-medium);
+    font-size: 1.1em;
+    text-align: left;
+    padding-left: 10px;
+    border-bottom: 1px solid var(--neutral-medium);
+    padding-bottom: 8px;
+}
+
+.song-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.song-history-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--neutral-light);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.song-history-item:hover {
+    background-color: var(--neutral-medium);
+}
+
+.song-history-num {
+    font-weight: bold;
+    flex: 0 0 30px;
+    text-align: center;
+    color: var(--text-medium);
+    font-size: 0.9em;
+}
+
+.song-history-details {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.song-history-song {
+    text-align: left;
+}
+
+.song-history-title {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+}
+
+.song-history-artist {
+    color: var(--text-light);
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+.song-history-year {
+    text-align: right;
+    flex: 0 0 70px;
+    font-size: 0.9em;
+}
+
+.song-history-result {
+    flex: 0 0 80px;
+    text-align: center;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+
+/* Year difference styling for song history */
+.song-history-result.correct {
+    background-color: rgba(40, 167, 69, 0.2);
+    color: var(--correct);
+}
+
+.song-history-result.skipped {
+    background-color: var(--neutral-light);
+    color: var(--skip-color);
+}
+
+.song-history-result.slightly-high,
+.song-history-result.slightly-low {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #856404;
+}
+
+.song-history-result.too-high {
+    background-color: rgba(69, 117, 180, 0.2);
+    color: var(--too-high);
+}
+
+.song-history-result.very-high {
+    background-color: rgba(49, 54, 149, 0.2);
+    color: var(--very-high);
+}
+
+.song-history-result.too-low {
+    background-color: rgba(252, 141, 89, 0.2);
+    color: var(--too-low);
+}
+
+.song-history-result.very-low {
+    background-color: rgba(215, 48, 39, 0.2);
+    color: var(--very-low);
+}
+
+/* Responsive styles for song history */
+@media (max-width: 480px) {
+    .song-history-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .song-history-year {
+        text-align: left;
+        flex: 0 0 auto;
+    }
+
+    .song-history-result {
+        align-self: flex-start;
     }
 }
