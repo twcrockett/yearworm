@@ -1,0 +1,14 @@
+[project]
+name = "yearworm"
+version = "0.1.0"
+description = "Music year-guessing game"
+requires-python = ">=3.12"
+dependencies = [
+    "flask",
+    "gunicorn",
+    "requests",
+    "python-dotenv",
+]
+
+[tool.uv]
+dev-dependencies = []

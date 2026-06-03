@@ -65,7 +65,13 @@ Thumbs.db
 
 # Editor/IDE specific files
 .idea/*
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/settings.json
 *.swp
 *.swo
 *~
+
+# Local planning / notes (not for version control)
+REBUILD_PLAN.md
+FEEDBACK.txt
