@@ -1,83 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Play Options - Yearworm</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=GRampart+One&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Play Options — Yearworm</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Familjen+Grotesk:wght@400;500;600;700&family=Rampart+One&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="page-header">
-        <span class="font-icon free-icon">♫</span>
-        <h1>Free Play</h1>
-        <h2 id="mode-subtitle">Select options</h2>
-    </div>
 
-    <div class="options-container">
-        <div class="options-form">
-            <div class="option-group">
-                <label class="option-label">Game Mode:</label>
-                <div class="option-description">
-                    Choose your game mode:
-                </div>
-                <div class="radio-container">
-                    <input type="radio" id="normal-mode" name="game-mode" checked>
-                    <label for="normal-mode">Normal Mode - Game ends when score drops below 0</label>
-                </div>
-                <div class="radio-container">
-                    <input type="radio" id="unlimited-mode" name="game-mode">
-                    <label for="unlimited-mode">Unlimited Mode - Keep playing regardless of score</label>
-                </div>
-            </div>
+  <div class="options-page">
+    <h1>Free Play</h1>
+    <p class="page-tagline">Set your rules. Then go wild.</p>
 
-            <div class="option-group">
-                <label class="option-label">Hints & Guesses:</label>
-                <div class="option-description">
-                    Choose how you want to play:
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="enable-hints">
-                    <label for="enable-hints">Enable Hints</label>
-                </div>
-                <div class="checkbox-container">
-                    <input type="checkbox" id="unlimited-guesses">
-                    <label for="unlimited-guesses">Unlimited Guesses Per Song</label>
-                </div>
-            </div>
+    <div class="options-card">
 
-            <button id="start-btn" class="start-btn">Start Free Play</button>
+      <div class="option-group">
+        <div class="option-group-label">Game Mode</div>
+        <div class="pill-options">
+          <div class="pill-option">
+            <input type="radio" id="mode-normal" name="game-mode" value="normal" checked>
+            <label for="mode-normal">Normal — ends when score hits zero</label>
+          </div>
+          <div class="pill-option">
+            <input type="radio" id="mode-unlimited" name="game-mode" value="unlimited">
+            <label for="mode-unlimited">Unlimited — just keep going</label>
+          </div>
         </div>
+      </div>
 
-        <a href="/" class="back-link">← Back to Home</a>
+      <div class="option-group">
+        <div class="option-group-label">Hints</div>
+        <div class="pill-options">
+          <div class="pill-option">
+            <input type="checkbox" id="enable-hints">
+            <label for="enable-hints">Allow hints (title &amp; artist)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <div class="option-group-label">Guesses per song</div>
+        <div class="pill-options">
+          <div class="pill-option">
+            <input type="radio" id="guess-one" name="guesses" value="one" checked>
+            <label for="guess-one">One shot</label>
+          </div>
+          <div class="pill-option">
+            <input type="radio" id="guess-unlimited" name="guesses" value="unlimited">
+            <label for="guess-unlimited">Keep guessing until right</label>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <script src="/static/common.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inject the navbar
-            injectNavbar();
+    <button id="start-btn" class="start-btn">Start Playing →</button>
+    <br>
+    <a href="/" class="back-link">← Back to Home</a>
+  </div>
 
-            // Replace the footer with the common footer
-            document.body.insertAdjacentHTML('beforeend', footerHTML);
+  <script src="/static/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      injectNavbar();
+      document.body.insertAdjacentHTML('beforeend', footerHTML);
 
-            const startBtn = document.getElementById('start-btn');
-            const enableHints = document.getElementById('enable-hints');
-            const unlimitedGuessesOption = document.getElementById('unlimited-guesses');
-            const normalModeOption = document.getElementById('normal-mode');
-            const unlimitedModeOption = document.getElementById('unlimited-mode');
-
-            startBtn.addEventListener('click', function() {
-                const hintsEnabled = enableHints.checked;
-                const unlimitedGuesses = unlimitedGuessesOption.checked;
-                const unlimitedMode = unlimitedModeOption.checked;
-
-                // Redirect to free play page with options as query parameters
-                window.location.href = `/free?hints=${hintsEnabled}&unlimited=${unlimitedGuesses}&unlimited_mode=${unlimitedMode}`;
-            });
-        });
-    </script>
+      document.getElementById('start-btn').addEventListener('click', function () {
+        const unlimitedMode   = document.getElementById('mode-unlimited').checked;
+        const hintsEnabled    = document.getElementById('enable-hints').checked;
+        const unlimitedGuesses = document.getElementById('guess-unlimited').checked;
+        window.location.href = '/free?hints=' + hintsEnabled +
+                               '&unlimited=' + unlimitedGuesses +
+                               '&unlimited_mode=' + unlimitedMode;
+      });
+    });
+  </script>
 </body>
 </html>

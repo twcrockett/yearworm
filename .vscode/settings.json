@@ -1,0 +1,5 @@
+{
+    // Select the yearworm conda environment as the Python interpreter.
+    // In VS Code: Ctrl+Shift+P → "Python: Select Interpreter" → choose 'yearworm'
+    "python.defaultInterpreterPath": "${env:CONDA_PREFIX}/envs/yearworm/python"
+}
