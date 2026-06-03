@@ -1,94 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yearworm</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Rampart+One&display=swap" rel="stylesheet">
-    <style>
-        /* Additional styles to condense layout */
-        .title-with-logo {
-            margin-bottom: 5px;
-        }
-        .title-with-logo + h2 {
-            margin-bottom: 15px;
-        }
-        .game-container {
-            padding: 20px 30px;
-        }
-        .description {
-            margin-bottom: 10px;
-        }
-        .mode-selection {
-            margin: 20px 0;
-            gap: 15px;
-        }
-        .game-info {
-            margin-top: 10px;
-            padding: 15px 20px;
-        }
-        .song-count {
-            text-align: center;
-            color: var(--text-light);
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yearworm</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Familjen+Grotesk:wght@400;500;600;700&family=Rampart+One&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="title-with-logo">
-        <img src="/static/logo.png" alt="Yearworm Logo">
-        <h1>Yearworm</h1>
-    </div>
-    <h2>How well do you know music across different eras?</h2>
 
-    <div class="game-container">
-        <div class="description">
-            <p>Test your music knowledge by guessing the release year of songs! Start with 100 points and maintain your score by guessing accurately.</p>
-        </div>
+  <div class="landing-hero">
+    <img src="/static/logo.png" alt="Yearworm" class="landing-logo">
+    <h1 class="landing-title">Yearworm</h1>
+    <p class="landing-tagline">Can you guess the year just by listening?</p>
+    <p class="landing-song-count" id="song-count-text">loading songs...</p>
+  </div>
 
-        <div class="mode-selection">
-            <a href="/daily" class="mode-btn daily">Daily Challenge</a>
-            <a href="/free_options" class="mode-btn">Free Play</a>
-        </div>
+  <div class="mode-grid">
+    <a href="/daily" class="mode-card daily">
+      <div class="mode-card-icon">📅</div>
+      <h2 class="mode-card-title">Daily Challenge</h2>
+      <p class="mode-card-desc">Five songs. One shot each. A new set every day — same for everyone. Compare scores with friends.</p>
+      <span class="mode-card-cta">Play today's →</span>
+    </a>
 
-        <div class="game-info">
-            <h3>Game Modes:</h3>
-            <p><strong>Daily Challenge:</strong> 5 songs that change daily. Everyone gets the same songs for fair competition!</p>
-            <p><strong>Free Play:</strong> Play as many songs as you want with optional hints and unlimited guesses.</p>
-            <p id="song-count" class="song-count">Loading song database info...</p>
-        </div>
-    </div>
+    <a href="/free_options" class="mode-card free">
+      <div class="mode-card-icon">∞</div>
+      <h2 class="mode-card-title">Free Play</h2>
+      <p class="mode-card-desc">No limits, no pressure. Pick your settings and go for as long as you want.</p>
+      <span class="mode-card-cta">Start playing →</span>
+    </a>
+  </div>
 
-    <script src="/static/common.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inject the navbar
-            injectNavbar();
+  <script src="/static/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      injectNavbar();
+      document.body.insertAdjacentHTML('beforeend', footerHTML);
 
-            // Replace the footer with the common footer
-            document.body.insertAdjacentHTML('beforeend', footerHTML);
-
-            // Get song count from the server
-            fetch('/get-song-count')
-                .then(response => response.json())
-                .then(data => {
-                    const songCountElement = document.getElementById('song-count');
-                    if (data.count) {
-                        const count = Number(data.count);
-                        songCountElement.textContent = `Currently featuring ${count.toLocaleString()} songs from 1900 to present`;
-                    } else {
-                        songCountElement.textContent = `Song selection is limited to the year 1900 and after`;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching song count:', error);
-                    document.getElementById('song-count').textContent = `Song selection is limited to the year 1900 and after`;
-                });
+      fetch('/get-song-count')
+        .then(r => r.json())
+        .then(data => {
+          const el = document.getElementById('song-count-text');
+          if (el) el.textContent = 'the worm has devoured ' + data.count.toLocaleString() + ' songs so far';
+        })
+        .catch(() => {
+          const el = document.getElementById('song-count-text');
+          if (el) el.textContent = '';
         });
-    </script>
+    });
+  </script>
 </body>
 </html>

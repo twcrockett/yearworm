@@ -1,170 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Play - Yearworm</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Rampart+One&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Play — Yearworm</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Familjen+Grotesk:wght@400;500;600;700&family=Rampart+One&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="page-header">
-        <span class="font-icon free-icon">♫</span>
-        <h1>Free Play</h1>
-        <h2 id="mode-subtitle"></h2>
-    </div>
 
-    <div class="game-container">
-        <div class="game-header">
-            <div class="round">Round: <b id="current-round">1</b></div>
-            <div id="score-container" class="score">
-                <span class="score-label">Score:</span>
-                <div class="score-circle">
-                    <span class="score-value" id="score">100</span>
-                </div>
-            </div>
-            <div id="avg-container" class="score" style="display: none;">
-                <span class="score-label">Avg:</span>
-                <div class="score-circle">
-                    <span class="score-value" id="avg-years-off">0</span>
-                </div>
-            </div>
+  <div id="game-app" data-view="game">
+
+    <!-- Persistent header — hidden on results screen via CSS -->
+    <header class="game-header">
+      <a href="/" class="game-back-link">← Home</a>
+      <div class="free-score-wrap" id="score-wrap">
+        <span class="free-score-label" id="score-label">Score</span>
+        <span class="free-score-value" id="free-score">100</span>
+      </div>
+      <div class="free-score-wrap" id="round-wrap">
+        <span class="free-score-label">Round</span>
+        <span class="free-score-value" id="free-round">1</span>
+      </div>
+    </header>
+
+    <!-- ── View 1: Active game ──────────────────────────────── -->
+    <section id="view-game" class="game-view">
+
+      <div id="audio-wrapper">
+        <!-- Custom audio player injected here by JS -->
+      </div>
+
+      <div class="guess-section">
+        <div class="guess-row">
+          <input type="number" id="year-guess" class="year-input"
+                 placeholder="year" min="1900" max="2030" autocomplete="off">
+          <button id="guess-btn" class="guess-btn">Guess</button>
+          <button id="skip-btn" class="skip-btn">Skip</button>
+        </div>
+        <div class="input-error" id="input-error"></div>
+      </div>
+
+      <div class="song-info-bar" id="song-info-bar">
+        <div class="song-info-item" id="title-item">
+          <div class="info-label">Title</div>
+          <div class="info-value unknown" id="title-display">?</div>
+        </div>
+        <div class="song-info-item" id="artist-item">
+          <div class="info-label">Artist</div>
+          <div class="info-value unknown" id="artist-display">?</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── View 2: Round result ─────────────────────────────── -->
+    <section id="view-round-result" class="game-view">
+      <div class="round-result-card">
+
+        <div>
+          <div class="result-song-title" id="result-title"></div>
+          <div class="result-song-artist" id="result-artist"></div>
         </div>
 
-        <div class="song-info-bar" id="song-info-bar">
-            <div class="song-info-item title">
-                <div class="item-label">Title</div>
-                <span id="title-display" class="unknown"></span>
-                <button id="title-hint-btn" class="hint-icon" style="display: none;">?</button>
-            </div>
-            <div class="song-info-item artist">
-                <div class="item-label">Artist</div>
-                <span id="artist-display" class="unknown"></span>
-                <button id="artist-hint-btn" class="hint-icon" style="display: none;">?</button>
-            </div>
-            <div class="song-info-item year">
-                <div class="item-label">Year</div>
-                <span id="year-display" class="unknown"></span>
-            </div>
+        <div class="result-year-row">
+          <div class="result-actual-year" id="result-year"></div>
+          <div class="result-year-label">was the year</div>
         </div>
 
-        <div class="player-container" id="player">
-            <!-- The song player will be injected here -->
-            <p>Loading song...</p>
-        </div>
-
-        <!-- Game Over Modal -->
-        <div class="game-over-overlay" id="game-over-overlay" style="display: none;">
-            <div class="game-over" id="game-over">
-                <h3>Game Over!</h3>
-                <p>Your score dropped below zero.</p>
-                <div class="final-result">
-                    <p>You survived <span id="final-rounds">0</span> rounds</p>
-                    <p>Final score: <span id="final-score">0</span></p>
-                </div>
-
-                <!-- New song history section -->
-                <div class="song-history-container">
-                    <h4>Song History</h4>
-                    <div class="song-history-list" id="song-history-list">
-                        <!-- Song history items will be inserted here -->
-                    </div>
-                </div>
-
-                <div class="game-over-actions">
-                    <a href="/free" class="restart-btn">Play Again</a>
-                    <a href="/free_options" class="restart-btn">Change Options</a>
-                    <a href="/" class="home-btn">Back to Home</a>
-                </div>
+        <div class="timeline-container">
+          <div class="timeline-range"><span>1950</span><span>2024</span></div>
+          <div class="timeline-track" id="timeline-track">
+            <div class="timeline-rail"></div>
+            <div class="timeline-distance" id="timeline-distance"></div>
+            <div class="timeline-marker marker-guess" id="marker-guess">
+              <div class="marker-pin"></div>
+              <div class="marker-label" id="marker-guess-label">your guess</div>
             </div>
+            <div class="timeline-marker marker-actual" id="marker-actual">
+              <div class="marker-pin"></div>
+              <div class="marker-label">actual</div>
+            </div>
+          </div>
         </div>
-        <div class="next-song-arrow" id="next-btn">
-            <span class="arrow">▶</span>
-            <span class="text">Next</span>
-        </div>
-    </div>
 
-    <!-- Navigation links moved outside of game container -->
-    <div class="navigation-links">
-        <a href="/" class="nav-btn">Back to Home</a>
-        <a href="/free_options" class="nav-btn">Change Options</a>
-    </div>
+        <div class="result-feedback-text" id="result-feedback"></div>
+        <div class="apple-music-link" id="apple-music-link"></div>
+        <button class="next-btn" id="next-round-btn">Next →</button>
 
-    <script src="/static/common.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Free Play page loaded");
+      </div>
+    </section>
 
-            // Get game options from URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            const hintsEnabled = urlParams.get('hints') === 'true';
-            const unlimitedGuesses = urlParams.get('unlimited') === 'true';
-            const unlimitedMode = urlParams.get('unlimited_mode') === 'true';
+    <!-- ── View 3: Game over / Results ─────────────────────── -->
+    <section id="view-results" class="game-view">
 
-            console.log("Game settings:", { hintsEnabled, unlimitedGuesses, unlimitedMode });
+      <div class="results-header">
+        <div class="results-worm" id="results-worm">🐛</div>
+        <div class="results-score-label" id="results-score-label">Final Score</div>
+        <div class="results-score-num" id="results-score">—</div>
+        <div class="results-message" id="results-message"></div>
+      </div>
 
-            // Update subtitle based on game mode
-            const modeSubtitle = document.getElementById('mode-subtitle');
-            if (modeSubtitle) {
-                modeSubtitle.textContent = unlimitedMode ? "Unlimited Mode" : "Normal Mode";
-            }
+      <div class="rounds-summary">
+        <div class="rounds-summary-label">Songs played</div>
+        <div id="rounds-list"></div>
+      </div>
 
-            // DOM elements for the game
-            const elements = {
-                // Game information elements
-                currentRoundSpan: document.getElementById('current-round'),
-                scoreSpan: document.getElementById('score'),
-                scoreContainer: document.getElementById('score-container'),
-                avgContainer: document.getElementById('avg-container'),
-                avgYearsOffSpan: document.getElementById('avg-years-off'),
+      <div class="results-actions">
+        <a id="play-again-btn" href="#" class="btn-primary">Play Again →</a>
+        <a href="/free_options" class="btn-secondary">Change Options</a>
+        <a href="/" class="btn-secondary">Home</a>
+      </div>
 
-                // Song information elements
-                playerContainer: document.getElementById('player'),
-                songInfoBar: document.getElementById('song-info-bar'),
-                titleDisplay: document.getElementById('title-display'),
-                artistDisplay: document.getElementById('artist-display'),
-                yearDisplay: document.getElementById('year-display'),
-                guessFeedback: null, // Removed guess-feedback element
+    </section>
 
-                // Hint buttons
-                titleHintBtn: document.getElementById('title-hint-btn'),
-                artistHintBtn: document.getElementById('artist-hint-btn'),
+  </div><!-- #game-app -->
 
-                // UI controls
-                nextBtn: document.getElementById('next-btn'),
+  <script src="/static/common.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      injectNavbar();
+      document.body.insertAdjacentHTML('beforeend', footerHTML);
 
-                // Game over elements
-                gameOverOverlay: document.getElementById('game-over-overlay'),
-                finalRoundsSpan: document.getElementById('final-rounds'),
-                finalScoreSpan: document.getElementById('final-score'),
-                songHistoryList: document.getElementById('song-history-list'),
+      const urlParams        = new URLSearchParams(window.location.search);
+      const hintsEnabled     = urlParams.get('hints')          === 'true';
+      const unlimitedGuesses = urlParams.get('unlimited')      === 'true';
+      const unlimitedMode    = urlParams.get('unlimited_mode') === 'true';
 
-                // Daily specific elements (not used in free play but needed for the constructor)
-                progressDots: null,
-                dailyCompletedDiv: null,
-                previousScoreSpan: null,
-                gameContent: null,
-                gameOver: null,
-                gameOverMessage: null,
-                resultsGrid: null,
-                copyResultsBtn: null,
-                copySuccess: null
-            };
+      // Wire play-again to replay with same options
+      const playAgainBtn = document.getElementById('play-again-btn');
+      if (playAgainBtn) playAgainBtn.href = '/free?' + window.location.search.replace(/^\?/, '');
 
-            // Create a new game instance
-            const game = new YearwormGame({
-                mode: 'free',
-                hintsEnabled,
-                unlimitedGuesses,
-                unlimitedMode
-            });
+      // Update score label for unlimited mode
+      const scoreLabel = document.getElementById('score-label');
+      if (scoreLabel && unlimitedMode) scoreLabel.textContent = 'Avg off';
 
-            // Initialize the game
-            game.initialize(elements);
-            game.loadNewSong();
-        });
-    </script>
+      const game = new YearwormGame({ mode: 'free', hintsEnabled, unlimitedGuesses, unlimitedMode });
+
+      game.initialize({
+        // Header
+        wormFace:       null,  // free play uses simple score display
+        wormSegments:   null,
+        wormScoreNum:   document.getElementById('free-score'),
+        progressDots:   null,
+        freeRoundSpan:  document.getElementById('free-round'),
+        // Game view
+        audioWrapper:   document.getElementById('audio-wrapper'),
+        yearInput:      document.getElementById('year-guess'),
+        guessBtn:       document.getElementById('guess-btn'),
+        skipBtn:        document.getElementById('skip-btn'),
+        inputError:     document.getElementById('input-error'),
+        titleDisplay:   document.getElementById('title-display'),
+        artistDisplay:  document.getElementById('artist-display'),
+        titleItem:      document.getElementById('title-item'),
+        artistItem:     document.getElementById('artist-item'),
+        // Round result view
+        resultTitle:    document.getElementById('result-title'),
+        resultArtist:   document.getElementById('result-artist'),
+        resultYear:     document.getElementById('result-year'),
+        timelineTrack:  document.getElementById('timeline-track'),
+        timelineDist:   document.getElementById('timeline-distance'),
+        markerGuess:    document.getElementById('marker-guess'),
+        markerGuessLbl: document.getElementById('marker-guess-label'),
+        markerActual:   document.getElementById('marker-actual'),
+        resultFeedback: document.getElementById('result-feedback'),
+        appleMusicLink: document.getElementById('apple-music-link'),
+        nextRoundBtn:   document.getElementById('next-round-btn'),
+        // Results view
+        resultsWorm:    document.getElementById('results-worm'),
+        resultsScore:   document.getElementById('results-score'),
+        resultsMessage: document.getElementById('results-message'),
+        alreadyBanner:  null,
+        roundsList:     document.getElementById('rounds-list'),
+        copyBtn:        null,
+        copySuccess:    null,
+      });
+
+      game.start();
+    });
+  </script>
 </body>
 </html>
